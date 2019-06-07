@@ -59,7 +59,7 @@ include() { local includefile="$1" file=/etc/samba/smb.conf
 # Return: user(s) added to container
 import() { local file="$1" name id
     while read name id; do
-        grep -q "^$name:" /etc/passwd || adduser -D -H -u "$id" "$name"
+        grep -q "^$name:" /etc/passwd || useradd --non-unique --no-create-home --no-user-group --uid "$id" "$name"
     done < <(cut -d: -f1,2 $file | sed 's/:/ /')
     pdbedit -i smbpasswd:$file
 }
@@ -139,7 +139,7 @@ smb() { local file=/etc/samba/smb.conf
 user() { local name="$1" passwd="$2" id="${3:-""}" group="${4:-""}"
     [[ "$group" ]] && { grep -q "^$group:" /etc/group || addgroup "$group"; }
     grep -q "^$name:" /etc/passwd ||
-        adduser -D -H ${group:+-G $group} ${id:+-u $id} "$name"
+        useradd --non-unique --no-create-home ${group:+--gid $group} ${id:+--uid $id} "$name"
     echo -e "$passwd\n$passwd" | smbpasswd -s -a "$name"
 }
 
